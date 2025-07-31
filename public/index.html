@@ -5,54 +5,116 @@
   <meta charset="UTF-8">
   <title>Gesetze-Mapper</title>
   <style>
+    html,
     body {
-      font-family: system-ui, sans-serif;
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
       max-width: 640px;
-      margin: 2rem auto
+      width: 100%;
+      padding: 2rem;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 2rem;
     }
 
     textarea {
       width: 100%;
       height: 6rem;
       font: 1rem/1.4 monospace;
-      padding: .6rem
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease-in-out;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: dodgerblue;
+      box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.25);
+    }
+
+    #out {
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      min-height: 1.5rem;
     }
 
     a {
       color: dodgerblue;
-      text-decoration: none
+      text-decoration: none;
+      font-weight: 500;
     }
 
     a:hover {
-      text-decoration: underline
+      text-decoration: underline;
     }
   </style>
 </head>
 
 <body>
-  <h1>Gesetze-Mapper</h1>
+  <div class="container">
+    <h1>Gesetze-Mapper</h1>
 
-  <textarea id="input" placeholder="z. B. 111 BGB oder 1 4 BGB"></textarea>
-  <div id="out"></div>
+    <textarea id="input" placeholder="z. B. 111 BGB oder 1 4 BGB" autofocus></textarea>
+    <div id="out"></div>
+  </div>
 
   <script>
     const inp = document.getElementById('input');
     const out = document.getElementById('out');
 
-    inp.addEventListener('input', async () => {
-      out.textContent = '';
+    let debounceTimer;
+    let lastFetchedValue = '';
+
+    const fetchLaw = async () => {
       const txt = inp.value.trim();
+
+      if (txt === lastFetchedValue) {
+        return;
+      }
+
+      lastFetchedValue = txt;
+      out.textContent = '';
       if (!txt) return;
 
       try {
         const r = await fetch('/map?q=' + encodeURIComponent(txt));
         if (!r.ok) throw new Error('API-Fehler');
-        const { url } = await r.json();
+        const {
+          url
+        } = await r.json();
         out.innerHTML = `<a href="${url}" target="_blank">${txt} ➜ ${url}</a>`;
       } catch (e) {
         out.textContent = 'Konnte URL nicht ermitteln';
+        lastFetchedValue = ''; // Reset on error to allow re-fetching
       }
+    };
+
+    inp.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(fetchLaw, 500);
     });
+
+    // Initial fetch for pre-filled values if any
+    if (inp.value.trim()) {
+      fetchLaw();
+    }
   </script>
 </body>
 
