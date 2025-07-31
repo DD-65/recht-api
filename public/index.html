@@ -30,6 +30,10 @@
       margin-bottom: 2rem;
     }
 
+    .input-wrapper {
+      position: relative;
+    }
+
     textarea {
       width: 100%;
       height: 6rem;
@@ -48,11 +52,54 @@
       border-color: dodgerblue;
       box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.25);
     }
+    
+    .clear-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: #eee;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 24px;
+        color: #666;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .input-wrapper:hover .clear-btn,
+    textarea:focus + .clear-btn {
+        opacity: 1;
+    }
+
 
     #out {
       margin-top: 1.5rem;
       font-size: 1.1rem;
       min-height: 1.5rem;
+    }
+    
+    .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid dodgerblue;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        animation: spin 1s linear infinite;
+        margin: 1.5rem auto 0;
+        display: none; /* Hidden by default */
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .error {
+        color: #d9534f;
     }
 
     a {
@@ -71,16 +118,23 @@
   <div class="container">
     <h1>Gesetze-Mapper</h1>
 
-    <textarea id="input" placeholder="z. B. 111 BGB oder 1 4 BGB" autofocus></textarea>
-    <div id="out"></div>
+    <div class="input-wrapper">
+        <textarea id="input" placeholder="z. B. 111 BGB oder 1 4 BGB" autofocus></textarea>
+        <button class="clear-btn" id="clear" title="Clear input">&times;</button>
+    </div>
+    <div id="loader" class="loader"></div>
+    <div id="out" aria-live="polite"></div>
   </div>
 
   <script>
     const inp = document.getElementById('input');
     const out = document.getElementById('out');
+    const loader = document.getElementById('loader');
+    const clearBtn = document.getElementById('clear');
 
     let debounceTimer;
     let lastFetchedValue = '';
+    let currentRequestController = null;
 
     const fetchLaw = async () => {
       const txt = inp.value.trim();
@@ -90,25 +144,51 @@
       }
 
       lastFetchedValue = txt;
-      out.textContent = '';
-      if (!txt) return;
+      out.innerHTML = '';
+      
+      if (!txt) {
+        return;
+      }
+
+      // Abort previous request if it's still running
+      if (currentRequestController) {
+        currentRequestController.abort();
+      }
+      currentRequestController = new AbortController();
+      const { signal } = currentRequestController;
+
+      loader.style.display = 'block';
 
       try {
-        const r = await fetch('/map?q=' + encodeURIComponent(txt));
-        if (!r.ok) throw new Error('API-Fehler');
-        const {
-          url
-        } = await r.json();
+        const r = await fetch('/map?q=' + encodeURIComponent(txt), { signal });
+        if (!r.ok) {
+            const errData = await r.json().catch(() => ({ error: 'API-Fehler' }));
+            throw new Error(errData.error || 'API-Fehler');
+        }
+        const { url } = await r.json();
         out.innerHTML = `<a href="${url}" target="_blank">${txt} ➜ ${url}</a>`;
       } catch (e) {
-        out.textContent = 'Konnte URL nicht ermitteln';
-        lastFetchedValue = ''; // Reset on error to allow re-fetching
+        if (e.name !== 'AbortError') {
+            out.innerHTML = `<span class="error">${e.message}</span>`;
+            lastFetchedValue = ''; // Reset on error to allow re-fetching
+        }
+      } finally {
+        loader.style.display = 'none';
+        currentRequestController = null;
       }
     };
 
     inp.addEventListener('input', () => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(fetchLaw, 500);
+    });
+    
+    clearBtn.addEventListener('click', () => {
+        inp.value = '';
+        inp.focus();
+        lastFetchedValue = '';
+        out.innerHTML = '';
+        clearTimeout(debounceTimer);
     });
 
     // Initial fetch for pre-filled values if any
