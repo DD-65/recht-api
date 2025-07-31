@@ -2,3 +2,5 @@
 
 Mapped §-Angaben wie `111 BGB` oder `1 4 BGB` in Sekundenschnelle auf die
 passende Gesetze-im-Internet-URL und gibt den Gesetzestext aus.
+
+Funktionert dank github.com/kmein/recht.
