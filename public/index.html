@@ -30,10 +30,6 @@
       margin-bottom: 2rem;
     }
 
-    .input-wrapper {
-      position: relative;
-    }
-
     textarea {
       width: 100%;
       height: 6rem;
@@ -44,7 +40,7 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       transition: all 0.2s ease-in-out;
       box-sizing: border-box;
-      resize: vertical;
+      resize: none;
     }
 
     textarea:focus {
@@ -52,34 +48,13 @@
       border-color: dodgerblue;
       box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.25);
     }
-    
-    .clear-btn {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: #eee;
-        border: none;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        cursor: pointer;
-        font-size: 16px;
-        line-height: 24px;
-        color: #666;
-        opacity: 0;
-        transition: opacity 0.2s;
-    }
-
-    .input-wrapper:hover .clear-btn,
-    textarea:focus + .clear-btn {
-        opacity: 1;
-    }
-
 
     #out {
       margin-top: 1.5rem;
       font-size: 1.1rem;
       min-height: 1.5rem;
+      text-align: left;
+      white-space: pre-wrap;
     }
     
     .loader {
@@ -102,15 +77,6 @@
         color: #d9534f;
     }
 
-    a {
-      color: dodgerblue;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 
@@ -118,10 +84,7 @@
   <div class="container">
     <h1>Gesetze-Mapper</h1>
 
-    <div class="input-wrapper">
-        <textarea id="input" placeholder="z. B. 111 BGB oder 1 4 BGB" autofocus></textarea>
-        <button class="clear-btn" id="clear" title="Clear input">&times;</button>
-    </div>
+    <textarea id="input" placeholder="z. B. 111 BGB oder 1 4 BGB" autofocus></textarea>
     <div id="loader" class="loader"></div>
     <div id="out" aria-live="polite"></div>
   </div>
@@ -130,7 +93,6 @@
     const inp = document.getElementById('input');
     const out = document.getElementById('out');
     const loader = document.getElementById('loader');
-    const clearBtn = document.getElementById('clear');
 
     let debounceTimer;
     let lastFetchedValue = '';
@@ -150,7 +112,6 @@
         return;
       }
 
-      // Abort previous request if it's still running
       if (currentRequestController) {
         currentRequestController.abort();
       }
@@ -166,7 +127,10 @@
             throw new Error(errData.error || 'API-Fehler');
         }
         const { url } = await r.json();
-        out.innerHTML = `<a href="${url}" target="_blank">${txt} ➜ ${url}</a>`;
+        const lawText = url;
+        const sectionIndex = lawText.indexOf('§');
+        const processedText = sectionIndex !== -1 ? lawText.substring(sectionIndex) : lawText;
+        out.textContent = processedText;
       } catch (e) {
         if (e.name !== 'AbortError') {
             out.innerHTML = `<span class="error">${e.message}</span>`;
@@ -182,16 +146,7 @@
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(fetchLaw, 500);
     });
-    
-    clearBtn.addEventListener('click', () => {
-        inp.value = '';
-        inp.focus();
-        lastFetchedValue = '';
-        out.innerHTML = '';
-        clearTimeout(debounceTimer);
-    });
 
-    // Initial fetch for pre-filled values if any
     if (inp.value.trim()) {
       fetchLaw();
     }
