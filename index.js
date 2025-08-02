@@ -22,8 +22,16 @@ setInterval(() => {
 
 // ---------- REST API
 APP.get("/map", (req, res) => {
-  const q = (req.query.q || "").trim(); // z.B. "111 BGB" oder "1 4 BGB"
+  const q = (req.query.q || "").trim(); // z.B. "BGB 111" oder "BGB 1 4"
   if (!q) return res.status(400).json({ error: "Parameter q fehlt" });
+
+  const LAW_REGEX = /^\s*\D+\s+\d+.*$/; // Regel: Vorschrift gefolgt von einer Nummer, z.B. "BGB 1" oder "GG 20"
+  if (!LAW_REGEX.test(q)) {
+    // erst Vorschrift holen wenn Eingabe vollständig erfolgt ist
+    return res.status(400).json({
+      error: "Bitte Vorschrift und eine Nummer angeben (z.B. BGB 1).",
+    });
+  }
 
   const cachedEntry = CACHE.get(q);
   if (cachedEntry) {
