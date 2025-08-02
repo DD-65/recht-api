@@ -56,27 +56,32 @@
       text-align: left;
       white-space: pre-wrap;
     }
-    
+
     .loader {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid dodgerblue;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        animation: spin 1s linear infinite;
-        margin: 1.5rem auto 0;
-        display: none; /* Hidden by default */
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid dodgerblue;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 1.5rem auto 0;
+      display: none;
+      /* Hidden by default */
     }
 
     @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     .error {
-        color: #d9534f;
+      color: #d9534f;
     }
-
   </style>
 </head>
 
@@ -107,7 +112,7 @@
 
       lastFetchedValue = txt;
       out.innerHTML = '';
-      
+
       if (!txt) {
         return;
       }
@@ -123,8 +128,8 @@
       try {
         const r = await fetch('/map?q=' + encodeURIComponent(txt), { signal });
         if (!r.ok) {
-            const errData = await r.json().catch(() => ({ error: 'API-Fehler' }));
-            throw new Error(errData.error || 'API-Fehler');
+          const errData = await r.json().catch(() => ({ error: 'API-Fehler' }));
+          throw new Error(errData.error || 'API-Fehler');
         }
         const { url } = await r.json();
         const lawText = url;
@@ -133,8 +138,8 @@
         out.textContent = processedText;
       } catch (e) {
         if (e.name !== 'AbortError') {
-            out.innerHTML = `<span class="error">${e.message}</span>`;
-            lastFetchedValue = ''; // Reset on error to allow re-fetching
+          out.innerHTML = `<span class="error">${e.message}</span>`;
+          lastFetchedValue = ''; // Reset on error to allow re-fetching
         }
       } finally {
         loader.style.display = 'none';

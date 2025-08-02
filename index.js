@@ -58,6 +58,6 @@ APP.get("/map", (req, res) => {
 APP.use(express.static(path.join(__dirname, "public")));
 
 // starten
-APP.listen(PORT, () =>
+APP.listen(PORT, "0.0.0.0", () =>
   console.log(`recht-API läuft auf http://localhost:${PORT}`)
 );
