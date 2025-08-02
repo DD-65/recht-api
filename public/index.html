@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Gesetze-Mapper</title>
+  <title>Gesetze-Finder</title>
   <style>
     html,
     body {
@@ -87,7 +87,7 @@
 
 <body>
   <div class="container">
-    <h1>Gesetze-Mapper</h1>
+    <h1>Gesetze-Finder</h1>
 
     <textarea id="input" placeholder="z. B. 111 BGB oder 1 4 BGB" autofocus></textarea>
     <div id="loader" class="loader"></div>
@@ -128,7 +128,7 @@
       try {
         const url = new URL(window.location.href);
         url.pathname = '/map';
-        url.search = new URLSearchParams({q: txt});
+        url.search = new URLSearchParams({ q: txt });
         const r = await fetch(url, { signal });
         if (!r.ok) {
           const errData = await r.json().catch(() => ({ error: 'API-Fehler' }));
