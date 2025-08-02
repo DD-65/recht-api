@@ -5,4 +5,4 @@ passende Gesetze-im-Internet-URL und gibt den Gesetzestext aus.
 
 Funktionert dank [kmein/recht](https://github.com/kmein/recht).
 
-Noch sehr bare-bones und buggy, eher als proof of concept.
+Benötigt werden node.js und das Haskell-Skript von kmein.
