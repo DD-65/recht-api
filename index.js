@@ -38,7 +38,10 @@ APP.get("/map", (req, res) => {
   }
 
   // eingabe splitten und an recht übergeben
-  const args = ["get", ...q.split(/\s+/)];
+  const args = [
+    "get",
+    ...q.split(/\s+/).map((p) => p.replace(/^0+(\d)/, "$1")),
+  ];
 
   execFile(RECHT_BIN, args, (err, stdout, stderr) => {
     if (err) {
