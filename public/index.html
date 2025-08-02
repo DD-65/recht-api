@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gesetze-Finder</title>
   <style>
     html,
@@ -23,6 +24,18 @@
       padding: 2rem;
       box-sizing: border-box;
       text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      h1 {
+        margin-bottom: 1.5rem;
+      }
+      textarea {
+        height: 5rem;
+      }
     }
 
     h1 {
@@ -55,6 +68,26 @@
       min-height: 1.5rem;
       text-align: left;
       white-space: pre-wrap;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        font-size: 1.1rem;
+      }
+      .container {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+      }
+      textarea {
+        height: 8rem;
+        font-size: 1rem;
+      }
+      #out {
+        font-size: 1rem;
+      }
     }
 
     .loader {
