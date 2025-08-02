@@ -20,7 +20,6 @@ setInterval(() => {
   }
 }, CACHE_TTL);
 
-
 // ---------- REST API
 APP.get("/map", (req, res) => {
   const q = (req.query.q || "").trim(); // z.B. "111 BGB" oder "1 4 BGB"
@@ -44,7 +43,7 @@ APP.get("/map", (req, res) => {
   execFile(RECHT_BIN, args, (err, stdout, stderr) => {
     if (err) {
       console.error("recht fehlgeschlagen:", stderr || err);
-      const errorResponse = { error: "Nicht gefunden oder recht-Fehler" };
+      const errorResponse = { error: "Vorschrift nicht gefunden" };
       CACHE.set(q, { response: errorResponse, timestamp: Date.now() });
       return res.status(500).json(errorResponse);
     }
