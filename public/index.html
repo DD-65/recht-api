@@ -126,13 +126,16 @@
       loader.style.display = 'block';
 
       try {
-        const r = await fetch('/map?q=' + encodeURIComponent(txt), { signal });
+        const url = new URL(window.location.href);
+        url.pathname = '/map';
+        url.search = new URLSearchParams({q: txt});
+        const r = await fetch(url, { signal });
         if (!r.ok) {
           const errData = await r.json().catch(() => ({ error: 'API-Fehler' }));
           throw new Error(errData.error || 'API-Fehler');
         }
-        const { url } = await r.json();
-        const lawText = url;
+        const { url: lawUrl } = await r.json();
+        const lawText = lawUrl;
         const sectionIndex = lawText.indexOf('§');
         const processedText = sectionIndex !== -1 ? lawText.substring(sectionIndex) : lawText;
         out.textContent = processedText;
