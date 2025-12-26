@@ -62,8 +62,13 @@
       box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.25);
     }
 
+    #statusText {
+      margin-top: 1rem;
+      min-height: 1.25rem;
+    }
+
     #out {
-      margin-top: 1.5rem;
+      margin-top: 1.25rem;
       font-size: 1.1rem;
       min-height: 1.5rem;
       text-align: left;
@@ -115,6 +120,11 @@
     .error {
       color: #d9534f;
     }
+
+    a.law-link {
+      color: dodgerblue;
+      word-break: break-all;
+    }
   </style>
 </head>
 
@@ -124,6 +134,7 @@
 
     <textarea id="input" placeholder="z. B. GG 1 oder HGB 15" autofocus></textarea>
     <div id="loader" class="loader"></div>
+    <p id="statusText" role="status" aria-live="polite"></p>
     <div id="out" aria-live="polite"></div>
   </div>
 
@@ -131,10 +142,16 @@
     const inp = document.getElementById('input');
     const out = document.getElementById('out');
     const loader = document.getElementById('loader');
+    const statusText = document.getElementById('statusText');
 
     let debounceTimer;
     let lastFetchedValue = '';
     let currentRequestController = null;
+
+    const setStatus = (message = '', isError = false) => {
+      statusText.textContent = message;
+      statusText.classList.toggle('error', isError);
+    };
 
     const fetchLaw = async () => {
       const txt = inp.value.trim();
@@ -145,6 +162,7 @@
 
       lastFetchedValue = txt;
       out.innerHTML = '';
+      setStatus('');
 
       if (!txt) {
         return;
@@ -157,6 +175,7 @@
       const { signal } = currentRequestController;
 
       loader.style.display = 'block';
+      setStatus('Suche läuft …');
 
       try {
         const url = new URL(window.location.href);
@@ -167,14 +186,28 @@
           const errData = await r.json().catch(() => ({ error: 'API-Fehler' }));
           throw new Error(errData.error || 'API-Fehler');
         }
-        const { url: lawUrl } = await r.json();
-        const lawText = lawUrl;
+        const { url: lawUrl, text: rawText = '' } = await r.json();
+        const lawText = typeof rawText === 'string' ? rawText : '';
         const sectionIndex = lawText.indexOf('§');
         const processedText = sectionIndex !== -1 ? lawText.substring(sectionIndex) : lawText;
-        out.textContent = processedText;
+        if (lawUrl) {
+          const link = document.createElement('a');
+          link.href = lawUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.className = 'law-link';
+          link.textContent = lawUrl;
+          out.appendChild(link);
+        }
+        if (processedText) {
+          const paragraph = document.createElement('p');
+          paragraph.textContent = processedText;
+          out.appendChild(paragraph);
+        }
+        setStatus('');
       } catch (e) {
         if (e.name !== 'AbortError') {
-          out.innerHTML = `<span class="error">${e.message}</span>`;
+          setStatus(e.message, true);
           lastFetchedValue = ''; // Reset on error to allow re-fetching
         }
       } finally {
